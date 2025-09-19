@@ -1,0 +1,29 @@
+version: "3.8"
+
+services:
+  web:
+    build: .
+    ports: ["8000:8000"]
+    environment:
+      DATABASE_URL: "postgresql://app:dev@db:5432/appdb"
+    depends_on:
+      db:
+        condition: service_started
+    networks: ["privnet"]
+
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: dev
+      POSTGRES_DB: appdb
+    healthcheck:
+      test: ["CMD-SHELL","pg_isready -U app -d appdb"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+    volumes: ["dbdata:/var/lib/postgresql/data"]
+    networks: ["privnet"]
+
+networks: { privnet: {} }
+volumes:  { dbdata:  {} }
